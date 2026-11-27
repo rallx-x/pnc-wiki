@@ -43,6 +43,7 @@
                 </label>
 
                 <div class="header-actions">
+                    <button type="button" class="header-button" id="noticeButton">공지</button>
                     <button type="button" class="header-button danger" id="resetButton">초기화</button>
                     <button type="button" class="header-button" id="loadJsonButton">불러오기</button>
                     <input id="loadJsonInput" type="file" accept=".json,application/json" hidden />
@@ -77,12 +78,6 @@
                     </summary>
                     <div class="page-nav-list" id="pageNavList"></div>
                 </details>
-                <!-- 공지: 고른 문서 언어로 보임 (script.js NOTICE_TEXT). 닫으면 다시 안 보임 -->
-                <div class="site-notice" id="siteNotice" hidden>
-                    <div class="site-notice-text" id="siteNoticeText"></div>
-                    <button type="button" class="site-notice-close" id="siteNoticeClose" aria-label="닫기">×</button>
-                </div>
-
                 <div class="page-step" data-page-step="top"></div>
 
                 <div class="autosave-warning" id="autosaveWarning" hidden>

@@ -3276,7 +3276,6 @@ function previewFoldKeys(root) {
 function render() {
   const folds = new Map(previewFoldKeys(previewEl).map(({ el, key }) => [key, el.open]));
   previewEl.innerHTML = themePreviewHtml(renderDocument(state));
-  if (typeof fillNotice === "function") fillNotice(); // 문서 언어가 바뀌면 공지 글도 그 언어로
   previewFoldKeys(previewEl).forEach(({ el, key }) => {
     if (folds.has(key)) el.open = folds.get(key);
   });
@@ -3726,9 +3725,18 @@ const docLangSelect = document.getElementById("docLangSelect");
 docLangSelect.replaceChildren(...DOC_LANGS.map((lang) => new Option(lang.label, lang.key)));
 docLangSelect.addEventListener("change", handleInput);
 
-// ---- 공지 (입력 화면 맨 위) ----
-// 해외 사용자도 읽을 수 있게 고른 문서 언어로 보여 준다. 닫으면 이 브라우저에서는 다시 안 보임
-const NOTICE_KEY = "pnc_wiki_notice_closed_v1";
+// ---- 공지 팝업 ----
+// 처음 들어오면 한 번 뜸 (공지 + 문서 언어 고르기). 헤더 「공지」 버튼으로 다시 볼 수 있음
+// 해외 사용자도 읽을 수 있게 고른 언어로 보여 준다. 처음에는 브라우저 언어로 미리 골라 둠
+const NOTICE_KEY = "pnc_wiki_notice_seen_v1";
+// 작업한 적 없는 첫 방문인지 (시작할 때 자동 저장이 한 번 돌기 전에 확인)
+const FIRST_VISIT = (() => {
+  try {
+    return !localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return false;
+  }
+})();
 const NOTICE_TEXT = {
   ko: "한국 블로그 <b>티스토리(Tistory)</b>를 기준으로 만든 HTML 생성기입니다. 개인 홈페이지 등 HTML을 직접 넣을 수 있는 곳이라면 어디서든 쓸 수 있어요. 스타일이 모두 HTML 안에 들어 있어서 <b>CSS를 따로 넣을 필요는 없어요.</b> 「저장 › 티스토리 HTML 복사」로 복사한 뒤, 글쓰기 화면의 HTML 모드에 붙여 넣어 주세요.",
   ja: "韓国のブログサービス<b>Tistory</b>向けに作られたHTMLジェネレーターです。個人のホームページなど、HTMLを直接貼り付けられる場所ならどこでも使えます。スタイルはすべてHTMLに含まれているので、<b>CSSを別途追加する必要はありません。</b>「저장 › 티스토리 HTML 복사」(保存 › HTMLコピー)でコピーし、エディターのHTMLモードに貼り付けてください。",
@@ -3736,25 +3744,91 @@ const NOTICE_TEXT = {
   tw: "這是以韓國部落格平台<b>Tistory</b>為基準製作的HTML產生器。個人網站等可以直接貼上HTML的地方都能使用。樣式都已包含在HTML中，<b>不需要另外加入CSS。</b>請用「저장 › 티스토리 HTML 복사」(儲存 › 複製HTML)複製後，貼到編輯器的HTML模式。",
   zh: "这是以韩国博客平台<b>Tistory</b>为基准制作的HTML生成器。个人网站等可以直接粘贴HTML的地方都能使用。样式都已包含在HTML中，<b>不需要另外添加CSS。</b>请用「저장 › 티스토리 HTML 복사」(保存 › 复制HTML)复制后，粘贴到编辑器的HTML模式。",
 };
-const siteNotice = document.getElementById("siteNotice");
-function fillNotice() {
-  let closed = false;
-  try {
-    closed = localStorage.getItem(NOTICE_KEY) === "1";
-  } catch {
-    // 저장소를 못 쓰면 항상 보임
+const NOTICE_UI = {
+  ko: { title: "공지", lang: "문서 언어", hint: "게임 용어와 문서 제목·표 머리가 이 언어로 나와요. 직접 쓴 글은 그대로예요. (헤더에서 언제든 바꿀 수 있어요)", ok: "확인" },
+  ja: { title: "お知らせ", lang: "ドキュメントの言語", hint: "ゲーム用語と見出し・表の項目がこの言語で表示されます。入力した文章はそのままです。(ヘッダーでいつでも変更できます)", ok: "OK" },
+  en: { title: "Notice", lang: "Document language", hint: "Game terms, headings and table labels use this language. Text you write stays as written. (You can change it anytime in the header.)", ok: "OK" },
+  tw: { title: "公告", lang: "文件語言", hint: "遊戲用語與標題、表格欄位會以此語言顯示。自己輸入的文字不會改變。(可隨時在上方更改)", ok: "確認" },
+  zh: { title: "公告", lang: "文档语言", hint: "游戏用语与标题、表格栏位会以此语言显示。自己输入的文字不会改变。(可随时在上方更改)", ok: "确认" },
+};
+
+function guessDocLang() {
+  const list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""]).map((l) => String(l).toLowerCase());
+  for (const l of list) {
+    if (l.startsWith("ko")) return "ko";
+    if (l.startsWith("ja")) return "ja";
+    if (/^zh-(tw|hk|mo|hant)/.test(l)) return "tw";
+    if (l.startsWith("zh")) return "zh";
+    if (l.startsWith("en")) return "en";
   }
-  siteNotice.hidden = closed;
-  document.getElementById("siteNoticeText").innerHTML = NOTICE_TEXT[state.docLang] || NOTICE_TEXT.ko;
-  siteNotice.lang = (DOC_LANGS.find((l) => l.key === state.docLang) || DOC_LANGS[0]).tag;
+  return "ko";
 }
-document.getElementById("siteNoticeClose").addEventListener("click", () => {
+
+function setDocLang(lang) {
+  if (!isDocLang(lang) || state.docLang === lang) return;
+  state.docLang = lang;
+  docLangSelect.value = lang;
+  saveToLocalStorage();
+  render();
+}
+
+function openNotice() {
+  const langButtons = DOC_LANGS.map((l) => `<button type="button" data-notice-lang="${l.key}">${l.label}</button>`).join("");
+  const dialog = openExportDialog(
+    NOTICE_UI.ko.title,
+    `<div class="notice-text"></div>
+    <div class="notice-lang">
+      <div class="notice-lang-title"></div>
+      <div class="notice-langs" role="group">${langButtons}</div>
+      <p class="notice-lang-hint"></p>
+    </div>`,
+    [{ label: NOTICE_UI.ko.ok, kind: "primary", value: true }]
+  );
+  const root = dialog.root;
+  const fill = () => {
+    const lang = state.docLang;
+    const ui = NOTICE_UI[lang] || NOTICE_UI.ko;
+    const tag = (DOC_LANGS.find((l) => l.key === lang) || DOC_LANGS[0]).tag;
+    root.querySelector(".export-dialog").lang = tag;
+    root.querySelector("h2").textContent = ui.title;
+    root.querySelector(".export-dialog").setAttribute("aria-label", ui.title);
+    root.querySelector(".notice-text").innerHTML = NOTICE_TEXT[lang] || NOTICE_TEXT.ko;
+    root.querySelector(".notice-lang-title").textContent = ui.lang;
+    root.querySelector(".notice-lang-hint").textContent = ui.hint;
+    root.querySelector(".export-actions .primary").textContent = ui.ok;
+    root.querySelectorAll("[data-notice-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.noticeLang === lang)));
+  };
+  root.querySelector(".notice-langs").addEventListener("click", (event) => {
+    const b = event.target.closest("[data-notice-lang]");
+    if (!b) return;
+    setDocLang(b.dataset.noticeLang);
+    fill();
+  });
+  fill();
+  dialog.done.then(() => {
+    try {
+      localStorage.setItem(NOTICE_KEY, "1");
+    } catch {
+      // 저장소를 못 쓰면 다음에도 뜸
+    }
+  });
+}
+
+document.getElementById("noticeButton").addEventListener("click", () => {
+  appHeader.classList.remove("is-menu-open"); // 폰 메뉴에서 눌렀으면 메뉴 닫기
+  openNotice();
+});
+// 처음 접속: export.js(대화상자)까지 다 읽은 뒤에 띄움
+document.addEventListener("DOMContentLoaded", () => {
+  let seen = false;
   try {
-    localStorage.setItem(NOTICE_KEY, "1");
+    seen = localStorage.getItem(NOTICE_KEY) === "1";
   } catch {
-    // 무시
+    seen = false;
   }
-  siteNotice.hidden = true;
+  if (seen) return;
+  if (FIRST_VISIT) setDocLang(guessDocLang()); // 작업한 적 없는 첫 방문만 브라우저 언어로
+  openNotice();
 });
 editorPanel.addEventListener("click", handleListClick);
 editorPanel.addEventListener("toggle", handleListToggle, true);
