@@ -3,9 +3,14 @@
 // - 키는 한 번 정하면 바꾸지 않는다. (기존 저장 파일이 깨짐)
 // - icon은 assets 폴더 기준 경로. 실제 주소는 assetUrl()이 만들어 준다.
 
-// 이미지 주소 앞부분. 저장소 이름·계정이 바뀌면 이 한 줄만 고치면 된다.
-// (티스토리에 붙여넣어도 깨지지 않도록 항상 전체 주소를 쓴다)
-const ASSET_BASE = "https://rallx-x.github.io/pnc-wiki/assets/";
+// 이미지 주소 앞부분 (티스토리에 붙여넣어도 깨지지 않도록 항상 전체 주소를 쓴다)
+// 사이트로 열면 「지금 열린 주소의 assets/」 → Cloudflare · GitHub Pages · 도메인이 바뀌어도 그대로 맞음
+// 파일로 직접 열었을 때(file://)만 아래 기본 주소를 쓴다.
+const ASSET_BASE_FALLBACK = "https://pnc-wiki.pages.dev/assets/";
+const ASSET_BASE =
+  typeof location !== "undefined" && /^https?:$/.test(location.protocol)
+    ? new URL("assets/", location.href).href
+    : ASSET_BASE_FALLBACK;
 
 function assetUrl(path) {
   if (!path) return "";
