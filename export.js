@@ -935,7 +935,6 @@ async function exportPdf() {
       if (kind === "json") saveWorkJson();
       if (kind === "png") await exportPng();
       if (kind === "pdf") await exportPdf();
-      if (kind === "xlsx") await exportExcel();
     } catch (error) {
       exportFailed(error);
     } finally {

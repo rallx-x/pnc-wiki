@@ -95,7 +95,7 @@ for (const [cat, table] of Object.entries(GD)) {
 const rendererSrc = fs.readFileSync(path.join(ROOT, "renderer.js"), "utf8");
 for (const m of rendererSrc.matchAll(/\btrf?\(\s*"([^"]*[가-힣][^"]*)"/g)) if (!wanted.has(m[1])) wanted.set(m[1], "renderer");
 for (const m of rendererSrc.matchAll(/\{ key: "\w+", title: "([^"]+)"/g)) if (!wanted.has(m[1])) wanted.set(m[1], "renderer.SECTION_DEFS");
-for (const f of ["data/game-data.js", "excel.js"]) {
+for (const f of ["data/game-data.js"]) {
   const src = fs.readFileSync(path.join(ROOT, f), "utf8");
   for (const m of src.matchAll(/\btrf?\(\s*"([^"]*[가-힣][^"]*)"/g)) if (!wanted.has(m[1])) wanted.set(m[1], f);
 }
