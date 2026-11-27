@@ -2401,3 +2401,34 @@ button.page-nav-item:hover {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
 }
+
+/* 문서 언어 선택 (헤더) */
+.doc-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 3px 12px;
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--sub-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.doc-lang select {
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@media (max-width: 1199px), (hover: none) and (pointer: coarse) {
+  .header-tools .doc-lang {
+    justify-content: space-between;
+  }
+}

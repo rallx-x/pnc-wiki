@@ -40,36 +40,36 @@ const SECTION_SUBS = {
   history: (state) => {
     const titles = getHistoryItems(state).map((item) => item.title.trim());
     const group = getStoryTypeItem(state);
-    return group && titles.length ? [{ title: group.label, children: titles }] : titles;
+    return group && titles.length ? [{ title: tr(group.label), children: titles }] : titles;
   },
   voice: (state) => getVoiceSets(state).map((set) => set.headingText),
   // 3.1 기본 > 능력치 · 스킬 / 3.2 무장각인 > 각인돌파 · 각인강화 / 3.3 평가. 내용 있는 것만 (없으면 번호 당김)
   performance: (state) => {
     const nodes = [];
     const children = [];
-    if (getStatTable(state)) children.push("능력치");
-    if (getSkillCards(state).length) children.push("스킬");
-    if (children.length) nodes.push({ title: "기본", children, key: "basic" });
+    if (getStatTable(state)) children.push(tr("능력치"));
+    if (getSkillCards(state).length) children.push(tr("스킬"));
+    if (children.length) nodes.push({ title: tr("기본"), children, key: "basic" });
     const eng = state.sections && state.sections.weapon === false ? null : getEngraving(state); // 무장각인 「작성함」 체크
     if (eng) {
       const engChildren = [];
-      if (eng.breakthroughs.length) engChildren.push("각인돌파");
-      if (eng.totals) engChildren.push("각인강화");
-      nodes.push({ title: "무장각인", children: engChildren, key: "engraving" });
+      if (eng.breakthroughs.length) engChildren.push(tr("각인돌파"));
+      if (eng.totals) engChildren.push(tr("각인강화"));
+      nodes.push({ title: tr("무장각인"), children: engChildren, key: "engraving" });
     }
     // 평가 = 기본·무장각인을 모두 아우르는 총평 (맨 끝)
-    if (getReviewParagraphs(state).length) nodes.push({ title: "평가", children: [], key: "review" });
+    if (getReviewParagraphs(state).length) nodes.push({ title: tr("평가"), children: [], key: "review" });
     return nodes;
   },
   // 알고리즘 배치가 있으면 4.1 추천 조합 / 4.2 알고리즘 배치 (없으면 하위 문단 없이 기존 표만)
-  algorithm: (state) => (hasBoardContent(state) ? [{ title: "추천 조합", key: "recommend" }, { title: "알고리즘 배치", key: "board" }] : []),
+  algorithm: (state) => (hasBoardContent(state) ? [{ title: tr("추천 조합"), key: "recommend" }, { title: tr("알고리즘 배치"), key: "board" }] : []),
   // 8.1 스킨(항상) + 8.2 일러스트(내용 있는 부분만, 없는 칸은 빠지고 번호 당김)
   skin: (state) => {
-    const nodes = [{ title: "스킨", children: getSkinItems(state).map((item) => item.headingText) }];
+    const nodes = [{ title: tr("스킨"), children: getSkinItems(state).map((item) => item.headingText) }];
     const parts = getIllustrationParts(state);
     if (parts.length) {
       nodes.push({
-        title: "일러스트",
+        title: tr("일러스트"),
         children: parts.map((part) => ({ title: part.title, children: (part.groups || []).map((group) => group.title) })),
       });
     }
@@ -99,7 +99,7 @@ function getActiveSections(state) {
   ).map((def) => {
     const sectionNumber = (number += 1);
     const subs = buildSubNodes(SECTION_SUBS[def.key] ? SECTION_SUBS[def.key](state) : [], sectionNumber, sectionAnchor(def.key), 1);
-    return { ...def, number: sectionNumber, subs };
+    return { ...def, title: tr(def.title), number: sectionNumber, subs };
   });
 }
 
@@ -363,7 +363,7 @@ const S = {
   profileTitleSub: `font-size:13px;font-weight:600;`,
   profileGrid: `display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;margin:16px 16px 0;`,
   profileItem: `display:flex;min-width:0;`,
-  profileLabel: `box-sizing:border-box;width:64px;flex-shrink:0;padding:10px 12px;background:${C.label};color:${C.text};font-weight:700;white-space:nowrap;`,
+  profileLabel: `box-sizing:border-box;min-width:64px;flex-shrink:0;padding:10px 12px;background:${C.label};color:${C.text};font-weight:700;white-space:nowrap;`,
   profileValue: `box-sizing:border-box;flex:1;min-width:0;padding:10px 14px;background:${C.white};border:1px solid ${C.border};border-left:none;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere;`,
   historyLabel: `margin:18px 16px 0;padding:10px 14px;background:${C.label};font-weight:700;`,
   historyValue: `margin:0 16px;padding:16px;background:${C.soft};line-height:1.8;word-break:keep-all;`,
@@ -400,10 +400,8 @@ function textOrDash(text) {
 }
 
 function formatBirthday(birthday) {
-  if (birthday.unknown) return "불명";
-  const month = birthday.month ? `${birthday.month}월` : "";
-  const day = birthday.day ? `${birthday.day}일` : "";
-  return [month, day].filter(Boolean).join(" ");
+  if (birthday.unknown) return tr("불명");
+  return formatMonthDay(birthday.month, birthday.day); // data/i18n.js (문서 언어에 맞춘 날짜)
 }
 
 function img(src, alt, style) {
@@ -438,7 +436,7 @@ const NAME_LANGS = [
 // 프로필 카드 이미지 = 기본 스킨 3칸 이미지 (같은 이미지를 같이 씀). 없으면 자리 글
 function topImage(state, key) {
   const src = getImageSrc(getSkinBase(state, key).image);
-  return src ? img(src, "", S.topImage) : "이미지 업로드 예정";
+  return src ? img(src, "", S.topImage) : tr("이미지 업로드 예정");
 }
 
 function renderTopCard(state) {
@@ -460,10 +458,10 @@ function renderTopCard(state) {
   <div style="${S.imageGrid}">
     <div style="${S.imageSlot}${S.imageSlotLeft}">${topImage(state, "basic")}</div>
     <div style="${S.imageSlot}">${topImage(state, "extended")}</div>
-    <div style="${S.imageCaption}">기본 투영</div>
-    <div style="${S.imageCaption}${S.imageCaptionRight}">확장 투영</div>
+    <div style="${S.imageCaption}">${tr("기본 투영")}</div>
+    <div style="${S.imageCaption}${S.imageCaptionRight}">${tr("확장 투영")}</div>
     <div style="${S.imageSlot}${S.imageSlotWide}">${topImage(state, "perfect")}</div>
-    <div style="${S.imageCaption}${S.imageCaptionWide}">완벽 투영</div>
+    <div style="${S.imageCaption}${S.imageCaptionWide}">${tr("완벽 투영")}</div>
   </div>
 </div>`;
 }
@@ -522,10 +520,10 @@ function renderInfo(state) {
 
   return `
 <div class="pncwiki-info" style="${S.info}">
-  ${row("클래스", infoClassCell(p), "기업", infoCompanyCell(p))}
-  ${row("레어도", infoRarity(p), "모델명", esc(textOrDash(p.model)))}
-  ${row("직업", esc(textOrDash(p.job)), "생일", esc(textOrDash(formatBirthday(p.birthday))))}
-  ${row("성우", infoVoice(p), "일러스트", infoIllustrator(p))}
+  ${row(tr("클래스"), infoClassCell(p), tr("기업"), infoCompanyCell(p))}
+  ${row(tr("레어도"), infoRarity(p), tr("모델명"), esc(textOrDash(p.model)))}
+  ${row(tr("직업"), esc(textOrDash(p.job)), tr("생일"), esc(textOrDash(formatBirthday(p.birthday))))}
+  ${row(tr("성우"), infoVoice(p), tr("일러스트@info"), infoIllustrator(p))}
 </div>`;
 }
 
@@ -552,7 +550,7 @@ function renderOverviewMedia(state) {
   if (!id) return "";
   return `<div class="pncwiki-overview-media" style="${S.overviewMedia}"><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener noreferrer" style="${S.videoLink}">${img(
     `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
-    "동영상",
+    tr("동영상"),
     S.overviewImage
   )}<span style="${S.videoPlay}"><span style="${S.videoPlayTri}"></span></span></a></div>`;
 }
@@ -579,7 +577,7 @@ function renderToc(sections) {
 
   return `
 <details class="pncwiki-toc" open style="${S.toc}">
-  <summary style="${S.tocSummary}"><span>목차</span><span style="${S.tocArrow}">${foldArrow(7)}</span></summary>
+  <summary style="${S.tocSummary}"><span>${tr("목차")}</span><span style="${S.tocArrow}">${foldArrow(7)}</span></summary>
   <div style="${S.tocBody}">${items}</div>
 </details>`;
 }
@@ -611,25 +609,25 @@ function renderProfileItem(label, valueHtml) {
 
 const SECTION_BODY = {
   overview: (state) =>
-    `${renderOverviewMedia(state)}${renderQuote(state)}<div style="${S.paragraph}">모바일 게임 <span style="${S.accent}">뉴럴 클라우드</span>에 등장하는 인형.</div>`,
+    `${renderOverviewMedia(state)}${renderQuote(state)}<div style="${S.paragraph}">${trf("모바일 게임 {0}에 등장하는 인형.", `<span style="${S.accent}">${esc(tr("뉴럴 클라우드"))}</span>`)}</div>`,
 
   profile: (state) => {
     const p = state.profile;
     return `
 <div class="pncwiki-profile-card" style="${S.profileCard}">
   <div style="${S.profileTitle}">
-    <span>피험 인형 프로필</span>
+    <span>${tr("피험 인형 프로필")}</span>
     <span style="${S.profileTitleSub}">PROJECT.NEURAL.CLOUD</span>
   </div>
   <div style="${S.profileGrid}">
-    ${renderProfileItem("이름", esc(textOrDash(p.name)))}
-    ${renderProfileItem("직업", esc(textOrDash(p.job)))}
-    ${renderProfileItem("모델", esc(textOrDash(p.model)))}
-    ${renderProfileItem("기업", iconLabel("company", p.company))}
-    ${renderProfileItem("생일", esc(textOrDash(formatBirthday(p.birthday))))}
-    ${renderProfileItem("클래스", iconLabel("class", p.class))}
+    ${renderProfileItem(tr("이름"), esc(textOrDash(p.name)))}
+    ${renderProfileItem(tr("직업"), esc(textOrDash(p.job)))}
+    ${renderProfileItem(tr("모델"), esc(textOrDash(p.model)))}
+    ${renderProfileItem(tr("기업"), iconLabel("company", p.company))}
+    ${renderProfileItem(tr("생일"), esc(textOrDash(formatBirthday(p.birthday))))}
+    ${renderProfileItem(tr("클래스"), iconLabel("class", p.class))}
   </div>
-  <div style="${S.historyLabel}">이력</div>
+  <div style="${S.historyLabel}">${tr("이력")}</div>
   <div style="${S.historyValue}">${escMultiline(textOrDash(p.history))}</div>
 </div>`;
   },
@@ -682,8 +680,8 @@ function getSkinItems(state) {
       isBase: Boolean(extra.label), // 기본/확장/완벽 투영 (문서에서 접힌 채로 시작)
       themed: Boolean(extra.theme), // 테마 이름은 강조색
       name,
-      tag: tag ? tag.label : "",
-      headingText: [[lead, name].filter(Boolean).join(" - "), tag ? `(${tag.label})` : ""].filter(Boolean).join(" "),
+      tag: tag ? tr(tag.label) : "",
+      headingText: [[lead, name].filter(Boolean).join(" - "), tag ? `(${tr(tag.label)})` : ""].filter(Boolean).join(" "),
       image: getImageSrc(raw.image),
       illustrator: str(raw.illustrator),
       acquisition: extra.acquisition,
@@ -693,7 +691,7 @@ function getSkinItems(state) {
     };
   };
   const base = GAME_DATA.skinBase.map((slot) =>
-    shape(getSkinBase(state, slot.key), { label: slot.label, acquisition: slot.acquisition, description: slot.description })
+    shape(getSkinBase(state, slot.key), { label: tr(slot.label), acquisition: tr(slot.acquisition), description: tr(slot.description) })
   );
   const items = isObj(state.skin) && Array.isArray(state.skin.items) ? state.skin.items : [];
   const themes = items
@@ -724,10 +722,10 @@ function renderSkinItem(item, sub) {
   return `
   <details class="pncwiki-skin" id="${sub.anchor}"${item.isBase ? "" : " open"} style="${S.skinFold}"${cap(`skin-${sub.number}`, "skin", `스킨_${item.headingText}`)}>
     <summary class="pncwiki-subheading" style="${S.skinSummary}${S.subHeading}${S.skinItemHeading}"><span style="${S.subHeadingArrow}">${foldArrow(7)}</span><span style="${S.headingNumber}">${sub.number}.</span> ${heading}</summary>
-    ${image}<div style="${S.skinTable}">${row("일러스트레이터", esc(item.illustrator), item.illustrator ? `color:${C.orange};` : "")}${row(
-      "입수방법",
+    ${image}<div style="${S.skinTable}">${row(tr("일러스트레이터"), esc(item.illustrator), item.illustrator ? `color:${C.orange};` : "")}${row(
+      tr("입수방법"),
       escMultiline(item.acquisition)
-    )}${row("적용범위", item.effects.map(renderSkinBadge).join(""))}</div>${descBox}
+    )}${row(tr("적용범위"), item.effects.map(renderSkinBadge).join(""))}</div>${descBox}
   </details>`;
 }
 
@@ -904,10 +902,10 @@ function getReviewParagraphs(state) {
 function prechargeText(values) {
   const [base, star3, star5] = values;
   const parts = [];
-  if (base) parts.push(`${base}초`);
-  if (star3) parts.push(`${star3}초(★3)`);
-  if (star5) parts.push(`${star5}초(★5)`);
-  return parts.length ? `예충전 ${parts.join(" → ")}` : "";
+  if (base) parts.push(trf("{0}초", base));
+  if (star3) parts.push(`${trf("{0}초", star3)}(★3)`);
+  if (star5) parts.push(`${trf("{0}초", star5)}(★5)`);
+  return parts.length ? `${tr("예충전")} ${parts.join(" → ")}` : "";
 }
 
 // 능력치 표: 값이 하나라도 있을 때만, 단계 칸도 값이 있는 단계만
@@ -921,7 +919,7 @@ function getStatTable(state) {
     .map((stage) => {
       const row = isObj(values[stage.key]) ? values[stage.key] : {};
       const cells = Object.fromEntries(GAME_DATA.statRows.map((r) => [r.key, str(row[r.key])]));
-      const label = stage.key === "init" ? (rarity ? `${rarity}성 1레벨` : "최초 1레벨") : stage.label;
+      const label = stage.key === "init" ? (rarity ? trf("{0}성 1레벨", rarity) : tr("최초 1레벨")) : tr(stage.label);
       return { key: stage.key, label, cells, any: Object.values(cells).some(Boolean) };
     })
     .filter((stage) => stage.any); // 값이 하나도 없는 단계 칸은 안 보임
@@ -931,7 +929,7 @@ function getStatTable(state) {
 
 function renderStatTable(table) {
   const cols = table.stages.length;
-  const head = `<div style="${S.statHead}">능력치</div>${table.stages.map((st) => `<div style="${S.statHead}">${esc(st.label)}</div>`).join("")}`;
+  const head = `<div style="${S.statHead}">${tr("능력치")}</div>${table.stages.map((st) => `<div style="${S.statHead}">${esc(st.label)}</div>`).join("")}`;
   const rows = GAME_DATA.statRows
     .map((row) => {
       const item = GAME_DATA.attribute[row.key];
@@ -943,23 +941,23 @@ function renderStatTable(table) {
           return `<div style="${S.statValue}">${v ? esc(v) + (row.unit && !v.endsWith(row.unit) ? row.unit : "") : ""}</div>`;
         })
         .join("");
-      return `<div style="${S.statName}">${icon}<span>${esc(item.label)}</span></div>${cells}`;
+      return `<div style="${S.statName}">${icon}<span>${esc(tr(item.label))}</span></div>${cells}`;
     })
     .join("");
   return `<div class="pncwiki-stats" style="${S.statTable}grid-template-columns:minmax(120px,1.3fr) repeat(${cols},1fr);">${head}${rows}</div>`;
 }
 
 function renderSkillCard(card) {
-  const cooldown = card.cooldown ? ` <span style="font-weight:400;">(쿨타임 ${esc(card.cooldown)}초)</span>` : "";
-  const head = `<div style="${S.skillRow}"><span style="${S.skillBadge}background:${card.slot.color};">${esc(card.slot.label)}</span> <span style="font-weight:700;">${renderMarkup(card.name, false)}</span>${cooldown}</div>`;
+  const cooldown = card.cooldown ? ` <span style="font-weight:400;">(${esc(tr("쿨타임"))} ${esc(trf("{0}초", card.cooldown))})</span>` : "";
+  const head = `<div style="${S.skillRow}"><span style="${S.skillBadge}background:${card.slot.color};">${esc(tr(card.slot.label))}</span> <span style="font-weight:700;">${renderMarkup(card.name, false)}</span>${cooldown}</div>`;
   const desc = card.desc ? `<div style="${S.skillRow}">${renderMarkup(card.desc, true)}</div>` : "";
   const pre = prechargeText(card.precharge);
   const preRow = pre ? `<div style="${S.skillRow}">${esc(pre)}</div>` : "";
   const cut = card.cutscene
-    ? `<details class="pncwiki-skill-fold" style="${S.skillRow}display:block;"><summary style="${S.skillFoldTitle}text-align:left;">[ 궁극기 컷씬 ]</summary><div style="padding-top:8px;">${img(card.cutscene, "궁극기 컷씬", S.illImage)}</div></details>`
+    ? `<details class="pncwiki-skill-fold" style="${S.skillRow}display:block;"><summary style="${S.skillFoldTitle}text-align:left;">[ ${tr("궁극기 컷씬")} ]</summary><div style="padding-top:8px;">${img(card.cutscene, tr("궁극기 컷씬"), S.illImage)}</div></details>`
     : "";
   const levels = card.levels.length && RENDER_MODE !== "png" // PNG에서는 레벨별 상세 제외
-    ? `<details class="pncwiki-skill-fold" style="display:block;border-top:1px solid ${C.infoLine};"><summary style="${S.skillFoldTitle}">[ 모든 레벨 효과 ]</summary><div style="${S.skillLevelTable}"><div style="${S.skillLevelHead}">레벨</div><div style="${S.skillLevelHead}">효과</div>${card.levels
+    ? `<details class="pncwiki-skill-fold" style="display:block;border-top:1px solid ${C.infoLine};"><summary style="${S.skillFoldTitle}">[ ${tr("모든 레벨 효과")} ]</summary><div style="${S.skillLevelTable}"><div style="${S.skillLevelHead}">${tr("레벨")}</div><div style="${S.skillLevelHead}">${tr("효과")}</div>${card.levels
         .map((line, i) => `<div style="${S.skillLevelNum}">${i + 1}</div><div style="${S.skillLevelText}">${line ? renderMarkup(line, true) : ""}</div>`)
         .join("")}</div></details>`
     : "";
@@ -1060,14 +1058,14 @@ function getEngraving(state) {
 }
 
 function renderBreakthrough(bt) {
-  const badge = bt.slot ? `<span style="${S.skillBadge}background:${bt.slot.color};">${esc(bt.slot.label)}</span> ` : "";
+  const badge = bt.slot ? `<span style="${S.skillBadge}background:${bt.slot.color};">${esc(tr(bt.slot.label))}</span> ` : "";
   const head = bt.name || badge ? `<div style="${S.skillRow}">${badge}<span style="font-weight:700;">${renderMarkup(bt.name, false)}</span></div>` : "";
   const desc = bt.desc ? `<div style="${S.skillRow}border-bottom:0;">${renderMarkup(bt.desc, true)}</div>` : "";
   const body = `<div style="${S.skillBody}">${head}${desc}</div>`;
   const inner = bt.icon
     ? `<div style="${S.skillTop}"><div style="${S.skillIcon}">${img(bt.icon, bt.name, S.skillIconImg)}</div>${body}</div>`
     : body;
-  return `<div class="pncwiki-breakthrough" style="${S.skillCard}"><div style="${S.engraveStage}">각인돌파 ${esc(bt.stage)}</div>${inner}</div>`;
+  return `<div class="pncwiki-breakthrough" style="${S.skillCard}"><div style="${S.engraveStage}">${tr("각인돌파")} ${esc(bt.stage)}</div>${inner}</div>`;
 }
 
 function renderEngravingTable(totals) {
@@ -1077,7 +1075,7 @@ function renderEngravingTable(totals) {
     .map((key) => {
       const url = getIconUrl("attribute", key);
       const icon = url ? `<span style="${S.optionIcon}">${img(url, "", S.optionIconImg)}</span>` : "";
-      return `<div style="${S.engraveHead}">${icon}<span>${esc(GAME_DATA.attribute[key].label)}</span></div>`;
+      return `<div style="${S.engraveHead}">${icon}<span>${esc(tr(GAME_DATA.attribute[key].label))}</span></div>`;
     })
     .join("");
   const row = (level, cellStyle) =>
@@ -1088,7 +1086,7 @@ function renderEngravingTable(totals) {
   return `
 <div class="pncwiki-engrave-table" style="${S.engraveWrap}"><div style="${S.engraveBox}">
   <div style="${grid}"><div style="${S.engraveHead}">Lv.</div>${heads}${row(GAME_DATA.engravingMaxLevel, S.engraveMax)}</div>
-  ${RENDER_MODE === "png" ? "" : `<details class="pncwiki-engrave-fold" style="display:block;border-top:1px solid ${C.cardBorder};"><summary style="${S.skillFoldTitle}">[ Lv.1 ~ ${GAME_DATA.engravingMaxLevel} 전체 보기 ]</summary><div style="${grid}border-top:1px solid ${C.infoLine};">${all}</div></details>`}
+  ${RENDER_MODE === "png" ? "" : `<details class="pncwiki-engrave-fold" style="display:block;border-top:1px solid ${C.cardBorder};"><summary style="${S.skillFoldTitle}">[ ${trf("Lv.1 ~ {0} 전체 보기", GAME_DATA.engravingMaxLevel)} ]</summary><div style="${grid}border-top:1px solid ${C.infoLine};">${all}</div></details>`}
 </div></div>`;
 }
 
@@ -1152,7 +1150,7 @@ function getExpressionGroups(state) {
     .filter(isObj)
     .map((group) => {
       let title = "";
-      if (group.source === "base") title = "기본";
+      if (group.source === "base") title = tr("기본");
       else if (group.source) {
         const skin = skins.find((item) => isObj(item) && item.id === group.source);
         title = skin ? (typeof skin.name === "string" && skin.name.trim()) || (typeof skin.theme === "string" ? skin.theme.trim() : "") : "";
@@ -1171,18 +1169,18 @@ function getIllustrationParts(state) {
   const cg = isObj(ill.cg) ? ill.cg : {};
   const parts = [];
   const standing = getTitledImageItems(ill.standing, "image");
-  if (standing.length) parts.push({ key: "standing", title: "스탠딩 CG", items: standing });
+  if (standing.length) parts.push({ key: "standing", title: tr("스탠딩 CG"), items: standing });
   const groups = [];
   const story = getStoryTypeItem(state);
   if (story) {
     const items = getTitledImageItems(cg.story, "images");
-    if (items.length) groups.push({ title: story.short, items });
+    if (items.length) groups.push({ title: tr(story.short), items });
   }
   const events = getTitledImageItems(cg.event, "images");
-  if (events.length) groups.push({ title: "일반", items: events });
-  if (groups.length) parts.push({ key: "cg", title: "일러스트 CG", groups });
+  if (events.length) groups.push({ title: tr("일반"), items: events });
+  if (groups.length) parts.push({ key: "cg", title: tr("일러스트 CG"), groups });
   const expressions = getExpressionGroups(state);
-  if (expressions.length) parts.push({ key: "expression", title: "감정 표현", expressions });
+  if (expressions.length) parts.push({ key: "expression", title: tr("감정 표현"), expressions });
   return parts;
 }
 
@@ -1324,7 +1322,7 @@ function getVoiceSets(state) {
         .filter((slot) => !slot.dialogue || slot.dialogue <= count)
         .map((slot) => ({ slot, text: str(lines[slot.key]) }))
         .filter((row) => row.text);
-      return { name, rows, headingText: name ? `'${name}' 투영 보이스 세트` : "투영 보이스 세트" };
+      return { name, rows, headingText: name ? trf("'{0}' 투영 보이스 세트", name) : tr("투영 보이스 세트") };
     })
     .filter((set) => set.name || set.rows.length);
 }
@@ -1339,12 +1337,12 @@ function renderVoiceRow(label, code, text) {
 
 function renderVoiceSet(set, sub, tone) {
   const name = set.name ? `<span style="${S.skinTheme}">${esc(set.name)}</span>` : "";
-  const desc = set.name ? `<div style="${S.voiceSetDesc}">${name} 투영으로 추가되는 보이스 세트이다.</div>` : "";
+  const desc = set.name ? `<div style="${S.voiceSetDesc}">${trf("{0} 투영으로 추가되는 보이스 세트이다.", name)}</div>` : "";
   const table = set.rows.length
     ? `
 <div class="pncwiki-voice" style="${S.voice}">
-  <div style="${S.voiceHead}background:${tone};">${set.name ? `'${esc(set.name)}' 투영 보이스` : "투영 보이스"}</div>${set.rows
-        .map((row) => renderVoiceRow(row.slot.label, row.slot.code, row.text))
+  <div style="${S.voiceHead}background:${tone};">${set.name ? trf("'{0}' 투영 보이스", esc(set.name)) : tr("투영 보이스")}</div>${set.rows
+        .map((row) => renderVoiceRow(tr(row.slot.label), row.slot.code, row.text))
         .join("")}
 </div>`
     : "";
@@ -1364,11 +1362,11 @@ function renderVoice(state, section) {
 function renderBaseVoice(state, tone) {
   const voice = isObj(state.voice) ? state.voice : {};
   const rows = GAME_DATA.voiceSlots
-    .map((slot) => renderVoiceRow(slot.label, slot.code, slot.fixed || (typeof voice[slot.key] === "string" ? voice[slot.key].trim() : "")))
+    .map((slot) => renderVoiceRow(tr(slot.label), slot.code, tr(slot.fixed) || (typeof voice[slot.key] === "string" ? voice[slot.key].trim() : "")))
     .join("");
   return `
 <div class="pncwiki-voice" style="${S.voice}margin-bottom:28px;"${cap("voice-base", "voice", "대사_기본보이스")}>
-  <div style="${S.voiceHead}background:${tone};">기본 보이스</div>${rows}
+  <div style="${S.voiceHead}background:${tone};">${tr("기본 보이스")}</div>${rows}
 </div>`;
 }
 
@@ -1395,7 +1393,7 @@ function renderStory(state) {
       const text = typeof story[slot.key] === "string" ? story[slot.key].trim() : "";
       return `
   <details class="pncwiki-story-slot" style="${S.storySlot}">
-    <summary style="${S.storySummary}">[ ${esc(slot.label)} ]</summary>
+    <summary style="${S.storySummary}">[ ${esc(tr(slot.label))} ]</summary>
     <div style="${S.storyBody}">
       <div style="${S.storyUnlock}">${esc(getStoryUnlockText(slot))}</div>
       <div style="${S.storyText}">${text ? escMultiline(text) : "-"}</div>
@@ -1405,7 +1403,7 @@ function renderStory(state) {
     .join("");
   return `
 <div class="pncwiki-story" style="${S.story}">
-  <div style="${S.storyHead}">인형 스토리</div>${slots}
+  <div style="${S.storyHead}">${tr("인형 스토리")}</div>${slots}
 </div>`;
 }
 
@@ -1455,7 +1453,7 @@ function renderHistoryLink(item) {
   const href = safeLinkUrl(item.linkUrl);
   const text = item.linkText.trim();
   if (!href || !text) return "";
-  return `<div style="${S.linkNote}">→ 자세한 내용은 <a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="${S.link}">${esc(text)}</a> 문서를 참고하십시오.</div>`;
+  return `<div style="${S.linkNote}">→ ${trf("자세한 내용은 {0} 문서를 참고하십시오.", `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="${S.link}">${esc(text)}</a>`)}</div>`;
 }
 
 // 등장 스토리 (메인/전속) — 없으면 null
@@ -1524,29 +1522,32 @@ function renderAlgorithmZone(type, zone) {
 
   const chips = (list) => (list.length ? list.map(optionChip).join("") : "-");
   const cell = (style, html) => `<div style="${style}">${html}</div>`;
+  // 다른 언어는 줄 이름(アルゴリズム · Main Stat …)이 길어서 이름 칸을 넓힘 (한국어는 그대로 72px)
+  const wide = DOC_LANG !== "ko";
+  const rowStyle = wide ? `${S.algoRow}grid-template-columns:112px repeat(3,minmax(0,1fr));` : S.algoRow;
   const row = (label, style, render) =>
-    `<div style="${S.algoRow}">${cell(S.algoRowLabel, label)}${cols.map((col) => cell(style, render(col))).join("")}</div>`;
+    `<div style="${rowStyle}">${cell(S.algoRowLabel, label)}${cols.map((col) => cell(style, render(col))).join("")}</div>`;
 
   const optionRows = anyCustom
-    ? `${row("주 옵션", S.algoOptionValue, (col) => (col ? chips(col.main) : "-"))}
-  ${row("부 옵션", S.algoOptionValue, (col) => (col ? chips(col.sub) : "-"))}`
-    : `<div style="${S.algoSharedRow}">${cell(S.algoRowLabel, "주 옵션")}${cell(S.algoSharedValue, chips(sharedMain))}${cell(
+    ? `${row(tr("주 옵션"), S.algoOptionValue, (col) => (col ? chips(col.main) : "-"))}
+  ${row(tr("부 옵션"), S.algoOptionValue, (col) => (col ? chips(col.sub) : "-"))}`
+    : `<div style="${S.algoSharedRow}${wide ? "grid-template-columns:112px 1fr 112px 1fr;" : ""}">${cell(S.algoRowLabel, tr("주 옵션"))}${cell(S.algoSharedValue, chips(sharedMain))}${cell(
         S.algoRowLabel,
-        "부 옵션"
+        tr("부 옵션")
       )}${cell(S.algoSharedValue, chips(sharedSub))}</div>`;
 
   return `
 <div class="pncwiki-algo-zone" style="${S.algoZone}">
-  <div style="${S.algoHead}">${esc(typeItem.label)}</div>
-  <div style="${S.algoRow}background:${typeItem.tint};">${cell(S.algoRowLabel + "background:transparent;", "")}${cols
+  <div style="${S.algoHead}">${esc(tr(typeItem.label))}</div>
+  <div style="${rowStyle}background:${typeItem.tint};">${cell(S.algoRowLabel + "background:transparent;", "")}${cols
     .map((col) =>
       cell(
         S.algoImageCell,
-        col ? `<span style="${S.algoBadge}background:${typeItem.accent};">${img(getIconUrl("algorithm", col.key), col.item.label, S.algoImg)}</span>` : ""
+        col ? `<span style="${S.algoBadge}background:${typeItem.accent};">${img(getIconUrl("algorithm", col.key), tr(col.item.label), S.algoImg)}</span>` : ""
       )
     )
     .join("")}</div>
-  ${row("알고리즘", S.algoNameCell, (col) => (col ? esc(col.item.label) : "-"))}
+  ${row(tr("알고리즘"), S.algoNameCell, (col) => (col ? esc(tr(col.item.label)) : "-"))}
   ${optionRows}
 </div>`;
 }
@@ -1646,7 +1647,7 @@ function getBoardPreset(state, presetIndex = 0) {
 
 function boardPresetName(preset, index) {
   const name = isObj(preset) && typeof preset.name === "string" ? preset.name.trim() : "";
-  return name || `추천 배치 ${index + 1}`;
+  return name || trf("추천 배치 {0}", index + 1);
 }
 
 // 추천 순위 후보 순서: 기본 1 → 2 → 3 / n순위 = 고른 순위 → 나머지 숫자 오름차순 (2 → 1 → 3, 3 → 1 → 2)
@@ -1828,7 +1829,7 @@ function boardTile(zone, piece, cells) {
   const item = cells === 2 ? getItem("algorithm", piece.key) : null;
   const value = boardMainValue(zone, piece.main, cells);
   const main = value != null ? `<div style="display:flex;align-items:center;justify-content:center;gap:4px;font-size:15px;font-weight:700;line-height:1.2;color:#1c1c1c;">${boardStatIcon(piece.main, 18)}<span>${esc(boardValueText(piece.main, value))}</span></div>` : "";
-  const name = cells === 2 ? item.label : boardOptionLabel(piece.main);
+  const name = cells === 2 ? tr(item.label) : boardOptionLabel(piece.main);
   const icon =
     cells === 2 && getIconUrl("algorithm", piece.key)
       ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0 auto 6px;background:${type.accent};border-radius:6px;">${img(getIconUrl("algorithm", piece.key), item.label, "display:block;width:38px;height:38px;margin:0;border:0;object-fit:contain;")}</span>`
@@ -1864,7 +1865,7 @@ function renderBoardZone(pl) {
     }
   }
   return `<div class="pncwiki-board-zone" style="box-sizing:border-box;flex:1 1 200px;max-width:240px;min-width:0;background:#2b2d33;border:1px solid #45484f;">
-  <div style="padding:5px;background:${type.accent};color:#ffffff;font-size:14px;font-weight:700;text-align:center;">${esc(type.label)}</div>
+  <div style="padding:5px;background:${type.accent};color:#ffffff;font-size:14px;font-weight:700;text-align:center;">${esc(tr(type.label))}</div>
   <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(${GAME_DATA.algorithmBoard.rows},74px);gap:4px;padding:6px;">${cells.join("")}${tiles.join("")}</div>
 </div>`;
 }
@@ -1873,22 +1874,22 @@ function renderBoardZone(pl) {
 function boardDetailCard(pl, piece, cells) {
   const type = GAME_DATA.algorithmType[pl.zone];
   const item = cells === 2 ? getItem("algorithm", piece.key) : null;
-  const name = cells === 2 ? item.label : boardOptionLabel(piece.main);
+  const name = cells === 2 ? tr(item.label) : boardOptionLabel(piece.main);
   const mainValue = boardMainValue(pl.zone, piece.main, cells);
   const subs = cells === 2 ? (Array.isArray(piece.subs) ? piece.subs : []) : [piece.sub];
   const subRows = subs
     .map((sub) => {
       const v = boardSubValue(pl.zone, sub);
-      if (v == null) return `<div style="padding:5px 10px;background:#2b2d33;color:#8a8f98;font-size:13px;">(부가 옵션 없음)</div>`;
+      if (v == null) return `<div style="padding:5px 10px;background:#2b2d33;color:#8a8f98;font-size:13px;">(${tr("부가 옵션 없음")})</div>`;
       return `<div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:#2b2d33;color:#ffffff;font-size:13px;">${boardStatIcon(sub, 18)}<span style="flex:1;">${esc(boardOptionLabel(sub))}</span><span style="color:#ffb04d;font-weight:700;">+${esc(boardValueText(sub, v))}</span></div>`;
     })
     .join("");
   const set = cells === 2 ? pl.sets.find((x) => x.key === piece.key) : null;
   const setRow = (label, on, text) =>
-    `<div style="display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.6;"><span style="flex-shrink:0;padding:0 6px;border-radius:3px;background:${on ? BOARD_SET_ON : BOARD_SET_OFF};color:#ffffff;font-weight:700;">${label}</span><span style="color:${on ? C.infoText : C.subText};">${esc(text)}</span></div>`;
-  const sets = item ? `<div style="display:flex;flex-direction:column;gap:4px;padding:8px 10px;">${setRow("2세트", set && set.on2, item.set2 || "")}${item.set3 ? setRow("3세트", set && set.on3, item.set3) : ""}</div>` : "";
+    `<div style="display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.6;"><span style="flex-shrink:0;padding:0 6px;border-radius:3px;background:${on ? BOARD_SET_ON : BOARD_SET_OFF};color:#ffffff;font-weight:700;">${label}</span><span style="min-width:0;overflow-wrap:anywhere;color:${on ? C.infoText : C.subText};">${esc(text)}</span></div>`;
+  const sets = item ? `<div style="display:flex;flex-direction:column;gap:4px;padding:8px 10px;">${setRow(tr("2세트"), set && set.on2, tr(item.set2 || ""))}${item.set3 ? setRow(tr("3세트"), set && set.on3, tr(item.set3)) : ""}</div>` : "";
   return `<div style="box-sizing:border-box;min-width:0;border:1px solid ${C.cardBorder};border-bottom:4px solid ${BOARD_ORANGE};background:${C.white};color:${C.infoText};">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px 6px;"><span style="font-size:15px;font-weight:700;">${esc(name)}</span><span style="flex-shrink:0;padding:0 6px;background:${C.algoHead};color:#ffffff;font-size:11px;">${esc(type.label)}</span></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px 6px;"><span style="font-size:15px;font-weight:700;">${esc(name)}</span><span style="flex-shrink:0;padding:0 6px;background:${C.algoHead};color:#ffffff;font-size:11px;">${esc(tr(type.label))}</span></div>
   <div style="display:flex;align-items:center;gap:6px;margin:0 10px 6px;padding:6px 8px;background:${BOARD_ORANGE};color:#ffffff;font-weight:700;">${boardStatIcon(piece.main, 20)}<span style="flex:1;">${esc(boardOptionLabel(piece.main))}</span><span>${mainValue != null ? esc(boardValueText(piece.main, mainValue)) : "-"}</span></div>
   <div style="display:flex;flex-direction:column;gap:2px;margin:0 10px;">${subRows}</div>
   ${sets || `<div style="height:8px;"></div>`}
@@ -1927,11 +1928,11 @@ function renderBoardPresetBody(state, presetIndex) {
     });
   });
   const details = cards.length
-    ? `<details class="pncwiki-board-detail" open style="display:block;margin:16px 0 0;"><summary style="${S.skinSummary}${S.storySummary}">[ 알고리즘 상세 ]</summary><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px;">${cards.join("")}</div></details>`
+    ? `<details class="pncwiki-board-detail" open style="display:block;margin:16px 0 0;"><summary style="${S.skinSummary}${S.storySummary}">[ ${tr("알고리즘 상세")} ]</summary><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:10px;">${cards.join("")}</div></details>`
     : "";
   const totals = getBoardTotals(placements);
   const totalHtml = totals.length
-    ? `${boardBar("기본 능력")}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;">${totals
+    ? `${boardBar(tr("기본 능력"))}<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;">${totals
         .map(
           (t) =>
             `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:${C.soft};border:1px solid ${C.border};">${boardStatIcon(t.key, 22)}<span style="flex:1;font-weight:700;">${esc(boardOptionLabel(t.key))}</span><span style="font-weight:700;">+${esc(boardValueText(t.key, t.value))}</span></div>`
@@ -1942,13 +1943,13 @@ function renderBoardPresetBody(state, presetIndex) {
   placements.forEach((pl) => pl.sets.forEach((set) => allSets.push({ ...set, zone: pl.zone })));
   const badge = (label, on) => `<span style="display:inline-block;padding:1px 10px;border-radius:3px;background:${on ? BOARD_SET_ON : BOARD_SET_OFF};color:#ffffff;font-size:12px;font-weight:700;">${label}</span>`;
   const setHtml = allSets.length
-    ? `${boardBar("알고리즘 세트")}<div style="display:flex;flex-direction:column;gap:8px;">${allSets
+    ? `${boardBar(tr("알고리즘 세트"))}<div style="display:flex;flex-direction:column;gap:8px;">${allSets
         .map((set) => {
           const type = GAME_DATA.algorithmType[set.zone];
           const url = getIconUrl("algorithm", set.key);
-          const icon = url ? `<span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:48px;height:48px;background:${type.accent};border-radius:6px;">${img(url, set.item.label, "display:block;width:42px;height:42px;margin:0;border:0;object-fit:contain;")}</span>` : "";
-          const effects = [set.on2 ? `<div><b>2세트</b> ${esc(set.item.set2 || "")}</div>` : "", set.on3 ? `<div><b>3세트</b> ${esc(set.item.set3)}</div>` : ""].join("");
-          return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid ${C.border};background:${C.white};">${icon}<div style="flex:1;min-width:0;"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 4px;"><b style="font-size:15px;">${esc(set.item.label)}</b>${badge("2세트", set.on2)}${set.item.set3 ? badge("3세트", set.on3) : ""}</div><div style="font-size:13px;line-height:1.6;overflow-wrap:anywhere;">${effects || `<span style="color:${C.subText};">켜진 세트 효과 없음</span>`}</div></div></div>`;
+          const icon = url ? `<span style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:48px;height:48px;background:${type.accent};border-radius:6px;">${img(url, tr(set.item.label), "display:block;width:42px;height:42px;margin:0;border:0;object-fit:contain;")}</span>` : "";
+          const effects = [set.on2 ? `<div><b>${tr("2세트")}</b> ${esc(tr(set.item.set2 || ""))}</div>` : "", set.on3 ? `<div><b>${tr("3세트")}</b> ${esc(tr(set.item.set3))}</div>` : ""].join("");
+          return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid ${C.border};background:${C.white};">${icon}<div style="flex:1;min-width:0;"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 4px;"><b style="font-size:15px;">${esc(tr(set.item.label))}</b>${badge(tr("2세트"), set.on2)}${set.item.set3 ? badge(tr("3세트"), set.on3) : ""}</div><div style="font-size:13px;line-height:1.6;overflow-wrap:anywhere;">${effects || `<span style="color:${C.subText};">${tr("켜진 세트 효과 없음")}</span>`}</div></div></div>`;
         })
         .join("")}</div>`
     : "";
@@ -1967,7 +1968,7 @@ function renderIntimacySkill(key, order) {
   const levels = item.values
     .map(
       (value, i) =>
-        `<div><span style="${S.lvBadge}">Lv${i + 1}</span>${esc(item.stat)} <span style="${S.lvValue}">${esc(value)}${esc(item.unit)}</span> 상승.</div>`
+        `<div><span style="${S.lvBadge}">Lv${i + 1}</span>${trf("{0} {1} 상승.", esc(tr(item.stat)), `<span style="${S.lvValue}">${esc(value)}${esc(item.unit)}</span>`)}</div>`
     )
     .join("");
 
@@ -1975,8 +1976,8 @@ function renderIntimacySkill(key, order) {
   <div style="${S.intimacyRow}">
     <div style="${S.intimacyCell}">${order}</div>
     <div style="${S.intimacyCell}flex-direction:column;">
-      <div style="${S.intimacyIcon}">${base ? img(base, "", S.intimacyIconImg) : ""}${icon ? img(icon, item.label, S.intimacyIconImg) : ""}</div>
-      <div style="${S.intimacyName}">${esc(item.label)}</div>
+      <div style="${S.intimacyIcon}">${base ? img(base, "", S.intimacyIconImg) : ""}${icon ? img(icon, tr(item.label), S.intimacyIconImg) : ""}</div>
+      <div style="${S.intimacyName}">${esc(tr(item.label))}</div>
     </div>
     <div style="${S.intimacyLevels}">${levels}</div>
   </div>`;
@@ -1991,7 +1992,7 @@ function renderGiftCard(key, reaction) {
   const bg = tier && tier.bg ? tier.bg : C.iconBg;
   const reactionUrl = getIconUrl("giftReaction", reaction);
   const reactionIcon = reactionUrl ? img(reactionUrl, "", S.giftNameIcon) : "";
-  return `<div style="${S.giftCard}"><div style="${S.giftBox}border-color:${color};background:${bg};">${img(getIconUrl("gift", key), gift.label, S.giftImg)}</div><div style="${S.giftName}">${reactionIcon}<span>${esc(gift.label)}</span></div></div>`;
+  return `<div style="${S.giftCard}"><div style="${S.giftBox}border-color:${color};background:${bg};">${img(getIconUrl("gift", key), tr(gift.label), S.giftImg)}</div><div style="${S.giftName}">${reactionIcon}<span>${esc(tr(gift.label))}</span></div></div>`;
 }
 
 function renderGiftGroup(reaction, title, keys) {
@@ -2010,7 +2011,7 @@ function renderIntimacy(state) {
   // 맨 위: 서약 스킬 고정 / 그 아래: 고른 스킬 1·2·3 (빈 칸·없는 키는 건너뛰고 번호를 다시 매김)
   const oathRows = Object.entries(GAME_DATA.intimacy)
     .filter(([, item]) => item.oath)
-    .map(([key]) => renderIntimacySkill(key, "서<br>약"))
+    .map(([key]) => renderIntimacySkill(key, tr("서<br>약")))
     .join("");
   const skillRows = state.intimacy.skills
     .filter((key) => {
@@ -2023,10 +2024,10 @@ function renderIntimacy(state) {
 
   return `
 <div class="pncwiki-intimacy" style="${S.intimacy}">
-  <div style="${S.intimacyHead}">친밀도 스킬</div>
+  <div style="${S.intimacyHead}">${tr("친밀도 스킬")}</div>
   ${oathRows}${skillRows}
-  ${renderGiftGroup("like", "좋아하는 선물", gifts.like)}
-  ${renderGiftGroup("hate", "싫어하는 선물", gifts.hate)}
+  ${renderGiftGroup("like", tr("좋아하는 선물"), gifts.like)}
+  ${renderGiftGroup("hate", tr("싫어하는 선물"), gifts.hate)}
 </div>${renderOath(state)}`;
 }
 
@@ -2041,7 +2042,7 @@ function getOath(state) {
 // 칭호: 적은 그대로 "칭호 · 수식어" / "칭호 · 단어" (비어 있는 쪽은 이미지까지 통째로 생략)
 function getOathTitleParts(state) {
   const { prefix, suffix } = getOath(state);
-  return { left: prefix ? `칭호 · ${prefix}` : "", right: suffix ? `칭호 · ${suffix}` : "" };
+  return { left: prefix ? `${tr("칭호")} · ${prefix}` : "", right: suffix ? `${tr("칭호")} · ${suffix}` : "" };
 }
 
 // 글자만 (입력 화면 미리보기용)
@@ -2061,7 +2062,7 @@ function renderOath(state) {
   const body = title || desc ? `${title}${title && desc ? `<div style="${S.oathRule}"></div>` : ""}${desc}` : `<div style="${S.oathDesc}padding-top:10px;">-</div>`;
   return `
 <div class="pncwiki-oath" style="${S.oath}">
-  <div style="${S.oathHead}">서약</div>
+  <div style="${S.oathHead}">${tr("서약")}</div>
   ${body}
 </div>`;
 }
@@ -2085,7 +2086,7 @@ function renderSection(state, section) {
 function renderDocument(state, options = {}) {
   RENDER_MODE = options.capture || "";
   try {
-    return renderDocumentBody(state);
+    return withDocLang(state.docLang, () => renderDocumentBody(state)); // 문서 언어 (data/i18n.js)
   } finally {
     RENDER_MODE = "";
   }
@@ -2094,7 +2095,7 @@ function renderDocument(state, options = {}) {
 function renderDocumentBody(state) {
   const sections = getActiveSections(state);
 
-  return `<div class="pncwiki-doc" style="${S.root}">${FOLD_STYLE}
+  return `<div class="pncwiki-doc" lang="${docLangTag()}" style="${S.root}">${FOLD_STYLE}
 <div class="pncwiki-cover"${cap("profile", "profile", "프로필")}>${part("top", renderTopCard(state))}
 ${part("info", renderInfo(state))}</div>
 ${part("toc", renderToc(sections))}

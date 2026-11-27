@@ -472,6 +472,7 @@ const GAME_DATA = {
 };
 
 // 키 → 표시 이름. 없는 키면 빈 문자열.
+// 이름·설명을 돌려주는 함수는 tr()을 거친다 → 문서를 그릴 때만 문서 언어로 바뀌고, 입력 화면은 한국어 그대로 (data/i18n.js)
 // 자기 목록에 실제로 있는 키만 (불러온 파일에 "constructor" 같은 키가 와도 엉뚱한 값을 돌려주지 않게)
 function getItem(category, key) {
   const table = Object.prototype.hasOwnProperty.call(GAME_DATA, category) ? GAME_DATA[category] : null;
@@ -481,13 +482,13 @@ function getItem(category, key) {
 
 function getLabel(category, key) {
   const item = getItem(category, key);
-  return item ? item.label : "";
+  return item ? tr(item.label) : "";
 }
 
 // 키 → 정식 명칭. fullLabel이 없으면 label.
 function getFullLabel(category, key) {
   const item = getItem(category, key);
-  return item ? item.fullLabel || item.label : "";
+  return item ? tr(item.fullLabel || item.label) : "";
 }
 
 // 키 → 이미지 전체 주소. 이미지가 없으면 빈 문자열.
@@ -502,7 +503,7 @@ function getAlgorithmSets(key) {
   if (!item) return [];
   return [["2세트", item.set2], ["3세트", item.set3]]
     .filter(([, text]) => text)
-    .map(([label, text]) => ({ label, text }));
+    .map(([label, text]) => ({ label: tr(label), text: tr(text) }));
 }
 
 // 구역(type)에 고를 수 있는 알고리즘 키 목록
@@ -533,9 +534,9 @@ function getIntimacyText(key, level) {
   if (!item) return "";
   const value = item.values[level - 1];
   if (value === undefined) return "";
-  return `${item.stat} ${value}${item.unit} 상승.`;
+  return trf("{0} {1} 상승.", tr(item.stat), `${value}${item.unit}`);
 }
 
 function getStoryUnlockText(slot) {
-  return `친밀도 Lv.${slot.unlock}에 개방`;
+  return trf("친밀도 Lv.{0}에 개방", slot.unlock);
 }

@@ -42,6 +42,7 @@ const STORAGE_KEY = "pnc_wiki_generator_autosave";
 // 사용자가 입력·선택하는 값만 둔다. (표시 이름, 번호 등 계산 가능한 값은 저장하지 않음)
 // 필드를 "추가"할 때는 여기에만 넣으면 된다. 버전은 올리지 않아도 됨.
 const DEFAULT_STATE = {
+  docLang: "ko", // 문서 언어 (data/i18n.js DOC_LANGS 키). 입력 화면은 항상 한국어
   profile: {
     name: "",
     names: {
@@ -563,6 +564,7 @@ function normalizeState(st) {
     if (group.source && usedSources.has(group.source)) group.source = "";
     if (group.source) usedSources.add(group.source);
   });
+  if (!isDocLang(st.docLang)) st.docLang = "ko";
   return st;
 }
 
@@ -3718,6 +3720,10 @@ function refreshAll() {
 }
 
 editorPanel.addEventListener("input", handleInput);
+// 문서 언어 (헤더에 있어서 editorPanel 밖) — 값 처리는 다른 칸과 같은 handleInput
+const docLangSelect = document.getElementById("docLangSelect");
+docLangSelect.replaceChildren(...DOC_LANGS.map((lang) => new Option(lang.label, lang.key)));
+docLangSelect.addEventListener("change", handleInput);
 editorPanel.addEventListener("click", handleListClick);
 editorPanel.addEventListener("toggle", handleListToggle, true);
 editorPanel.addEventListener("change", handleImageChange);
