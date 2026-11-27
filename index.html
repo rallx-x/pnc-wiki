@@ -82,18 +82,23 @@
 
                 <div class="form-group" data-page="profile-names">
                     <label for="dollName">이름</label>
-                    <input id="dollName" type="text" data-field="profile.name" />
+                    <input id="dollName" type="text" data-field="profile.name" list="dollNameList" autocomplete="off" />
+                    <datalist id="dollNameList"></datalist>
                 </div>
 
                 <div class="form-group" data-page="profile-names">
-                    <label for="dollNameCn">중국어명</label>
+                    <label for="dollNameCn">중국어명 (간체)</label>
                     <input id="dollNameCn" type="text" data-field="profile.names.cn" />
+
+                    <label for="dollNameTw" class="sub-label">중국어명 (번체)</label>
+                    <input id="dollNameTw" type="text" data-field="profile.names.tw" />
 
                     <label for="dollNameJp" class="sub-label">일본어명</label>
                     <input id="dollNameJp" type="text" data-field="profile.names.jp" />
 
                     <label for="dollNameEn" class="sub-label">영어명</label>
                     <input id="dollNameEn" type="text" data-field="profile.names.en" />
+                    <p class="list-hint">이름을 고르면 42LAB Archive의 다국어명이 빈 칸에 채워져요.</p>
                 </div>
 
                 <div class="form-group" data-page="profile-info">
@@ -570,6 +575,7 @@
     </div>
 
     <script src="./data/game-data.js"></script>
+    <script src="./data/doll-names.js"></script>
     <script src="./data/stat-db.js"></script>
     <script src="./data/engraving-db.js"></script>
     <script src="./renderer.js"></script>

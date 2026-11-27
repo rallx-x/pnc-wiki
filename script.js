@@ -45,7 +45,8 @@ const DEFAULT_STATE = {
   profile: {
     name: "",
     names: {
-      cn: "", // 중국어명
+      cn: "", // 중국어명 (간체)
+      tw: "", // 중국어명 (번체)
       jp: "", // 일본어명
       en: "", // 영어명  (※ 언어 키. 성우 국가 키와 별개)
     },
@@ -1117,6 +1118,36 @@ function fillFields(root) {
   });
 }
 
+// 인형 이름 → 42LAB Archive 다국어명 (data/doll-names.js)
+// 이름 칸에 아는 인형 이름이 들어오면 비어 있는 다국어명 칸만 채운다. (직접 쓴 값은 덮어쓰지 않음)
+function fillDollNames(name) {
+  if (typeof DOLL_NAMES === "undefined") return;
+  const key = String(name || "").trim();
+  const found = key && DOLL_NAMES.find((d) => d.ko === key);
+  if (!found) return;
+  let changed = false;
+  Object.keys(state.profile.names).forEach((lang) => {
+    if (found[lang] && !String(state.profile.names[lang] || "").trim()) {
+      state.profile.names[lang] = found[lang];
+      changed = true;
+    }
+  });
+  if (changed) fillFields(document);
+}
+
+// 이름 칸 자동 완성 목록
+function buildDollNameList() {
+  const list = document.getElementById("dollNameList");
+  if (!list || typeof DOLL_NAMES === "undefined") return;
+  list.replaceChildren(
+    ...[...DOLL_NAMES].sort((a, b) => a.ko.localeCompare(b.ko, "ko")).map((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.ko;
+      return opt;
+    })
+  );
+}
+
 function fillForm() {
   buildBirthdayDayOptions();
   fillFields(document);
@@ -1270,6 +1301,8 @@ function handleInput(event) {
   }
   const foldPrefix = path.split(".")[0];
   if (FOLD_EDITORS[foldPrefix]) fillFoldStatus(foldPrefix);
+
+  if (path === "profile.name") fillDollNames(value);
 
   if (path.startsWith("profile.birthday")) {
     applyBirthdayRules();
@@ -4376,6 +4409,7 @@ buildSkillEditor();
 buildStatTable();
 buildEngravingEditor();
 buildMarkupGuide();
+buildDollNameList();
 state = freshState(); // 문단 목록 등록(defineList)이 끝난 뒤 빈 문서 만들기
 loadFromLocalStorage();
 refreshAll();

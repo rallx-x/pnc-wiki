@@ -5,7 +5,7 @@
 
 // 이미지 주소 앞부분. 저장소 이름·계정이 바뀌면 이 한 줄만 고치면 된다.
 // (티스토리에 붙여넣어도 깨지지 않도록 항상 전체 주소를 쓴다)
-const ASSET_BASE = "https://rallx-x.github.io/PNC-wiki/assets/";
+const ASSET_BASE = "https://rallx-x.github.io/pnc-wiki/assets/";
 
 function assetUrl(path) {
   if (!path) return "";
@@ -52,6 +52,7 @@ const GAME_DATA = {
     jp: { label: "일본", icon: "flag/jp.svg" },
     kr: { label: "한국", icon: "flag/kr.svg" },
     cn: { label: "중국", icon: "flag/cn.svg" },
+    tw: { label: "대만", icon: "flag/tw.svg" },
     us: { label: "미국", icon: "flag/us.svg" },
   },
 

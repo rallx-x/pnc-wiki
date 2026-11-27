@@ -429,7 +429,8 @@ function part(name, inner, extraStyle = "") {
 
 // 다국어명 칸. names의 키는 "언어", 국기는 그 언어를 나타내는 국가 이미지.
 const NAME_LANGS = [
-  { key: "cn", flag: "cn", placeholder: "중국어명" },
+  { key: "cn", flag: "cn", placeholder: "중국어명 (간체)" },
+  { key: "tw", flag: "tw", placeholder: "중국어명 (번체)" },
   { key: "jp", flag: "jp", placeholder: "일본어명" },
   { key: "en", flag: "us", placeholder: "영어명" },
 ];

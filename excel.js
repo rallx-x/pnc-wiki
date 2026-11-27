@@ -1531,7 +1531,8 @@ function buildDataSheets(book, state) {
       keys.push(key);
     };
     add("이름", xlStr(p.name), "profile.name");
-    add("중국어명", xlStr(p.names.cn), "profile.names.cn");
+    add("중국어명 (간체)", xlStr(p.names.cn), "profile.names.cn");
+    add("중국어명 (번체)", xlStr(p.names.tw), "profile.names.tw");
     add("일본어명", xlStr(p.names.jp), "profile.names.jp");
     add("영어명", xlStr(p.names.en), "profile.names.en");
     add("직업", xlStr(p.job), "profile.job");
