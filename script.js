@@ -3276,6 +3276,7 @@ function previewFoldKeys(root) {
 function render() {
   const folds = new Map(previewFoldKeys(previewEl).map(({ el, key }) => [key, el.open]));
   previewEl.innerHTML = themePreviewHtml(renderDocument(state));
+  if (typeof fillNotice === "function") fillNotice(); // 문서 언어가 바뀌면 공지 글도 그 언어로
   previewFoldKeys(previewEl).forEach(({ el, key }) => {
     if (folds.has(key)) el.open = folds.get(key);
   });
@@ -3724,6 +3725,37 @@ editorPanel.addEventListener("input", handleInput);
 const docLangSelect = document.getElementById("docLangSelect");
 docLangSelect.replaceChildren(...DOC_LANGS.map((lang) => new Option(lang.label, lang.key)));
 docLangSelect.addEventListener("change", handleInput);
+
+// ---- 공지 (입력 화면 맨 위) ----
+// 해외 사용자도 읽을 수 있게 고른 문서 언어로 보여 준다. 닫으면 이 브라우저에서는 다시 안 보임
+const NOTICE_KEY = "pnc_wiki_notice_closed_v1";
+const NOTICE_TEXT = {
+  ko: "한국 블로그 <b>티스토리(Tistory)</b>를 기준으로 만든 HTML 생성기입니다. 개인 홈페이지 등 HTML을 직접 넣을 수 있는 곳이라면 어디서든 쓸 수 있어요. 스타일이 모두 HTML 안에 들어 있어서 <b>CSS를 따로 넣을 필요는 없어요.</b> 「저장 › 티스토리 HTML 복사」로 복사한 뒤, 글쓰기 화면의 HTML 모드에 붙여 넣어 주세요.",
+  ja: "韓国のブログサービス<b>Tistory</b>向けに作られたHTMLジェネレーターです。個人のホームページなど、HTMLを直接貼り付けられる場所ならどこでも使えます。スタイルはすべてHTMLに含まれているので、<b>CSSを別途追加する必要はありません。</b>「저장 › 티스토리 HTML 복사」(保存 › HTMLコピー)でコピーし、エディターのHTMLモードに貼り付けてください。",
+  en: "This HTML generator was made with the Korean blog platform <b>Tistory</b> in mind, but it works anywhere you can paste raw HTML, such as a personal website. All styles are included inline, so <b>no extra CSS is needed.</b> Copy it with 「저장 › 티스토리 HTML 복사」 (Save › Copy HTML) and paste it into your editor's HTML mode.",
+  tw: "這是以韓國部落格平台<b>Tistory</b>為基準製作的HTML產生器。個人網站等可以直接貼上HTML的地方都能使用。樣式都已包含在HTML中，<b>不需要另外加入CSS。</b>請用「저장 › 티스토리 HTML 복사」(儲存 › 複製HTML)複製後，貼到編輯器的HTML模式。",
+  zh: "这是以韩国博客平台<b>Tistory</b>为基准制作的HTML生成器。个人网站等可以直接粘贴HTML的地方都能使用。样式都已包含在HTML中，<b>不需要另外添加CSS。</b>请用「저장 › 티스토리 HTML 복사」(保存 › 复制HTML)复制后，粘贴到编辑器的HTML模式。",
+};
+const siteNotice = document.getElementById("siteNotice");
+function fillNotice() {
+  let closed = false;
+  try {
+    closed = localStorage.getItem(NOTICE_KEY) === "1";
+  } catch {
+    // 저장소를 못 쓰면 항상 보임
+  }
+  siteNotice.hidden = closed;
+  document.getElementById("siteNoticeText").innerHTML = NOTICE_TEXT[state.docLang] || NOTICE_TEXT.ko;
+  siteNotice.lang = (DOC_LANGS.find((l) => l.key === state.docLang) || DOC_LANGS[0]).tag;
+}
+document.getElementById("siteNoticeClose").addEventListener("click", () => {
+  try {
+    localStorage.setItem(NOTICE_KEY, "1");
+  } catch {
+    // 무시
+  }
+  siteNotice.hidden = true;
+});
 editorPanel.addEventListener("click", handleListClick);
 editorPanel.addEventListener("toggle", handleListToggle, true);
 editorPanel.addEventListener("change", handleImageChange);

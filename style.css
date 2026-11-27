@@ -2432,3 +2432,46 @@ button.page-nav-item:hover {
     justify-content: space-between;
   }
 }
+
+/* 공지 (입력 화면 맨 위) */
+.site-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 22px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.site-notice[hidden] {
+  display: none;
+}
+
+.site-notice-text {
+  flex: 1;
+  min-width: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.site-notice-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sub-text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.site-notice-close:hover {
+  background: var(--panel-soft);
+}

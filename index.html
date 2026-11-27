@@ -30,17 +30,17 @@
                     </div>
                 </div>
 
-                <!-- 문서 언어: 게임 고유명사·문서 틀만 바뀜 (직접 쓴 글은 그대로). 입력 화면은 한국어 -->
-                <label class="doc-lang" title="문서 언어 — 게임 용어와 문서 제목·표 머리가 이 언어로 나와요. 직접 쓴 글은 그대로예요.">
-                    <span class="doc-lang-label">문서 언어</span>
-                    <select id="docLangSelect" data-field="docLang"></select>
-                </label>
-
                 <div class="theme-switch" role="group" aria-label="화면 밝기">
                     <button type="button" data-theme-choice="light" title="밝게" aria-label="밝게"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></g></svg></button>
                     <button type="button" data-theme-choice="mid" title="중간" aria-label="중간"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
                     <button type="button" data-theme-choice="dark" title="어둡게" aria-label="어둡게"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor"/></svg></button>
                 </div>
+
+                <!-- 문서 언어: 게임 고유명사·문서 틀만 바뀜 (직접 쓴 글은 그대로). 입력 화면은 한국어 -->
+                <label class="doc-lang" title="문서 언어 — 게임 용어와 문서 제목·표 머리가 이 언어로 나와요. 직접 쓴 글은 그대로예요.">
+                    <span class="doc-lang-label">문서 언어</span>
+                    <select id="docLangSelect" data-field="docLang"></select>
+                </label>
 
                 <div class="header-actions">
                     <button type="button" class="header-button danger" id="resetButton">초기화</button>
@@ -77,6 +77,12 @@
                     </summary>
                     <div class="page-nav-list" id="pageNavList"></div>
                 </details>
+                <!-- 공지: 고른 문서 언어로 보임 (script.js NOTICE_TEXT). 닫으면 다시 안 보임 -->
+                <div class="site-notice" id="siteNotice" hidden>
+                    <div class="site-notice-text" id="siteNoticeText"></div>
+                    <button type="button" class="site-notice-close" id="siteNoticeClose" aria-label="닫기">×</button>
+                </div>
+
                 <div class="page-step" data-page-step="top"></div>
 
                 <div class="autosave-warning" id="autosaveWarning" hidden>
